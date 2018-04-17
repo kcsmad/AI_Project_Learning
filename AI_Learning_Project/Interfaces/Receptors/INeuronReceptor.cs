@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using AI_Learning_Project.Neurons.Signals;
+using AI_Learning_Project.Interfaces.Signals;
 
-namespace AI_Learning_Project.Neurons.Receptors
+namespace AI_Learning_Project.Interfaces.Receptors
 {
     public interface INeuronReceptor
     {

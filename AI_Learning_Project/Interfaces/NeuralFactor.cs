@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AI_Learning_Project.Neurons
+namespace AI_Learning_Project.Interfaces
 {
     public class NeuralFactor
     {
