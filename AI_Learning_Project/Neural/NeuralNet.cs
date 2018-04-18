@@ -16,7 +16,7 @@ namespace AI_Learning_Project.Neural
         public INeuralLayer OutputLayer { get; set; }
         public INeuralLayer PerceptionLayer { get; set; }
 
-        void INeuralNet.ApplyLearning()
+        public void ApplyLearning()
         {
             lock (this)
             {
@@ -25,7 +25,7 @@ namespace AI_Learning_Project.Neural
             }
         }
 
-        void INeuralNet.Pulse()
+        public void Pulse()
         {
             lock (this)
             {
@@ -39,20 +39,87 @@ namespace AI_Learning_Project.Neural
             int i, j;
             double temp, error;
 
-            INeuron outputNeuron, inputNode, hiddenNode, node, node2;
+            INeuron outputNode, inputNode, hiddenNode, node;
 
             //Calculate output error values
             for (i = 0; i < m_outputLayer.Count; i++)
             {
                 temp = m_outputLayer[i].Output;
+                m_outputLayer[i].Error = (desiredResults[i] - temp) * temp * (1.0F - temp);
             }
+
+            //Calculate hidden layer errors values
+            for (i = 0; i < m_hiddenLayer.Count; i++)
+            {
+                node = m_hiddenLayer[i];
+
+                error = 0;
+
+                for (j = 0; j < m_outputLayer.Count; j++)
+                {
+                    outputNode = m_outputLayer[j];
+                    error += outputNode.Error * outputNode.Input[node].Weight * node.Output * (1.0 - node.Output);
+                }
+
+                node.Error = error;
+            }
+
+            //adjust output layer weight change
+            for (i = 0; i < m_outputLayer.Count; i++)
+            {
+                node = m_hiddenLayer[i];
+
+                for (j = 0; j < m_outputLayer.Count; j++)
+                {
+                    outputNode = m_outputLayer[j];
+                    outputNode.Input[node].Weight += m_learningRate * m_outputLayer[j].Error * node.Output;
+                    outputNode.Bias.Delta += m_learningRate * m_outputLayer[j].Error * outputNode.Bias.Weight;
+                }
+            }
+
+            //adjust hidden layer weight change
+            for (i = 0; i < m_inputLayer.Count; i++)
+            {
+                inputNode = m_inputLayer[i];
+
+                for (j = 0; j < m_hiddenLayer.Count; j++)
+                {
+                    hiddenNode = m_hiddenLayer[j];
+                    hiddenNode.Input[inputNode].Weight += m_learningRate * hiddenNode.Error * inputNode.Output;
+                    hiddenNode.Bias.Delta += m_learningRate * hiddenNode.Error * inputNode.Bias.Weight;
+                }
+            }
+        }
+
+        public void Train(double[] input, double[] desiredResult)
+        {
+            int i;
+
+            if (input.Length != m_inputLayer.Count)
+                throw new ArgumentException(string.Format("Expecting {0} inputs for this net", m_inputLayer.Count));
+
+            for (i = 0; i < m_inputLayer.Count; i++)
+            {
+                Neuron n = m_inputLayer[i] as Neuron;
+
+                if (n != null) //maybe make interface get;set;
+                    n.Output = input[i];
+            }
+
+            Pulse();
+            BackPropogation(desiredResult);
+        }
+
+        public void Train(double[][] inputs, double[][] expected)
+        {
+            for(int i = 0; i < inputs.Length; i++)
+                Train(inputs[i], expected[i]);
         }
 
         public void Initialize(int randomSeed, int inputNeuronCount, int hiddenNeuronCount, int outputNeuronCount)
         {
-            int i, j, k, layerCount;
+            int i, j, k;
             Random rand;
-            INeuralLayer layer;
 
             //initializations
             rand = new Random(randomSeed);

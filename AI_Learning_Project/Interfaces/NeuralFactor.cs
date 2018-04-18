@@ -19,6 +19,7 @@ namespace AI_Learning_Project.Interfaces
 
         private double m_weight;
         private double m_delta;
+        private double m_lastDelta;
 
         #endregion
 
