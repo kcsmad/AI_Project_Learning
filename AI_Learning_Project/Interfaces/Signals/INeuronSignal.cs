@@ -1,6 +1,6 @@
 ﻿namespace AI_Learning_Project.Interfaces.Signals
 {
-    interface INeuronSignal
+    public interface INeuronSignal
     {
         double Output { get; set; }
     }
